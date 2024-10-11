@@ -1,0 +1,123 @@
+ENV: nuplan
+optimizer_mode: single
+
+MISO_ROOT: /home/elad/git/miso
+NUPLAN_ROOT: /media/elad/Data/nuplan # This is the root directory for all nuplan related data
+
+PATHS:
+  ENV_ROOT: ${MISO_ROOT}/envs/${ENV}
+  DATA_DIR: ${PATHS.ENV_ROOT}/data
+  LOG_DIR: ${PATHS.DATA_DIR}/logs/${optimizer_mode}
+  EVAL_DIR: ${PATHS.DATA_DIR}/eval/${optimizer_mode}
+  WANDB_DIR: ${PATHS.ENV_ROOT}/wandb
+
+  MODELS_CSV_PATH: ${PATHS.EVAL_DIR}/wandb_export.csv
+  PATH_TO_DATASET: ${PATHS.DATA_DIR}/dataset
+
+  NUPLAN_DATA_ROOT: ${NUPLAN_ROOT}/dataset # This is where all the nuPlan dataset files are stored
+
+  NUPLAN_EXP_ROOT: ${NUPLAN_ROOT}/exp # This is where all the simulation data is stored (useful just for metrics / visualization)
+  NUPLAN_SIMULATION_LOG_DIR: ${PATHS.NUPLAN_EXP_ROOT}/simulation_logs
+
+  NUPLAN_MAPS_ROOT: ${PATHS.NUPLAN_DATA_ROOT}/maps
+  NUPLAN_DB_FILES: ${PATHS.NUPLAN_DATA_ROOT}/nuplan-v1.1/trainval
+
+  NUPLAN_DEVKIT_ROOT: ${MISO_ROOT}/envs/nuplan/nuplan-devkit
+  BASE_CONFIG_PATH: ${PATHS.NUPLAN_DEVKIT_ROOT}/nuplan/planning/script
+
+  NUPLAN_MAP_VERSION: nuplan-maps-v1.0
+
+
+NUPLAN_SIMULATION_CONFIG:
+  output_dir: ${PATHS.NUPLAN_SIMULATION_LOG_DIR}
+  simulation_metric: simulation_closed_loop_reactive_agents
+
+  worker: ray_distributed  # [sequential, single_machine_thread_pool, ray_distributed]
+  worker.use_distributed: True
+#  worker_debug_mode: False
+  worker.threads_per_node: 25
+  number_of_gpus_allocated_per_simulation: 0.04
+
+  ego_controller: two_stage_controller
+  planner: pdm_closed_planner  # [idm_planner, log_future_planner]
+  observation: idm_agents_observation  # [idm_agents_observation, box_observation]
+
+  scenario_builder: nuplan  # {nuplan: trainval, nuplan_challenge: test, nuplan_mini: mini}
+  scenario_filter: all_scenarios  # [all_scenarios, one_continuous_log]
+  scenario_filter.scenario_tokens: []
+
+  main_callback_metric_summary_callback: "~main_callback.metric_summary_callback"  # Remove the metric_summary_callback which plots histograms
+  main_callback_metric_aggregator_callback: "~main_callback.metric_aggregator_callback"  # Remove the metric_aggregator_callback
+  main_callback_metric_file_callback: "~main_callback.metric_file_callback"  # Remove the metric_file_callback
+  run_metric: false
+
+  enable_simulation_progress_bar: False
+  verbose: False
+
+
+open_loop_data:
+  load_experiment: closed_loop
+  load_method: warm_start
+  load_name: ${open_loop_data.load_experiment}_${open_loop_data.load_method}
+  load_path: ${PATHS.LOG_DIR}/${open_loop_data.load_name}/
+
+solvers:
+  online:
+    max_solve_time: 0.005
+    max_ilqr_iterations: 100
+
+  oracle:
+    max_solve_time: 0.05
+    max_ilqr_iterations: 500
+
+  NN:
+    max_solve_time: 0.00415
+    max_ilqr_iterations: 100
+
+warm_start:
+  solver: ${solvers.online}
+
+oracle:
+  solver: ${solvers.oracle}
+
+NN:
+  solver: ${solvers.NN}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  run_name:
+
+NN_perturbation:
+  solver: ${solvers.NN}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  run_name:
+  noise_scale: 0.01
+  num_perturbations:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+
+NN_ensemble:
+  solver: ${solvers.NN}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  run_name:
+
+  ensemble_size:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+
+warm_start_perturbation:
+  solver: ${solvers.online}
+  noise_scale: 0.01
+  num_perturbations:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32

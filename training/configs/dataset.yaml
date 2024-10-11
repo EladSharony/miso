@@ -1,0 +1,52 @@
+MISO_ROOT: /home/elad/git/miso
+experiment: open_loop
+method: oracle
+file_name: ${experiment}_${method}
+
+nuplan:
+  env: nuplan
+  data_path: ${MISO_ROOT}/envs/${nuplan.env}/data
+  logs_path: ${nuplan.data_path}/logs/single/${file_name}
+  file_name: ${file_name}
+
+  shapes:
+    current_state: ( 1, 5 )
+    reference_trajectory: (41, 5)
+    input_trajectory: ( 40, 2 )
+    state_trajectory: ( 41, 5 )
+    warm_start_input_trajectory: (40, 2 )
+    warm_start_state_trajectory: ( 41, 5 )
+  token_list: null
+  num_tokens: 4_466 # (out of 4_466) which corresponds to ~660_968 samples (~148 per/episode)
+
+reacher:
+    env: reacher
+    data_path: ${MISO_ROOT}/envs/${reacher.env}/data
+    logs_path: ${reacher.data_path}/logs/single/${file_name}
+    file_name: ${file_name}
+
+    shapes:
+        current_state: ( 1, 6 )
+        goal_state: ( 1, 6 )
+        input_trajectory: ( 10, 2 )
+        state_trajectory: ( 11, 6 )
+        warm_start_input_trajectory: (10, 2 )
+        warm_start_state_trajectory: ( 11, 6 )
+    token_list: null
+    num_tokens: 2_000 # (out of 4_000) which corresponds to 500_000 samples (250 per/episode)
+
+cartpole:
+    env: cartpole
+    data_path: ${MISO_ROOT}/envs/${cartpole.env}/data
+    logs_path: ${cartpole.data_path}/logs/single/${file_name}
+    file_name: ${file_name}
+
+    shapes:
+        current_state: ( 1, 4 )
+        goal_state: ( 1, 4 )
+        input_trajectory: ( 9, 1 )
+        state_trajectory: ( 10, 4 )
+        warm_start_input_trajectory: (9, 1 )
+        warm_start_state_trajectory: ( 10, 4 )
+    token_list: null
+    num_tokens: 10_000 # (out of 10_000) which corresponds to 500_000 samples (50 per/episode)

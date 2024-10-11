@@ -1,0 +1,135 @@
+ENV: reacher
+optimizer_mode: single
+
+MISO_ROOT: /home/elad/git/miso
+
+PATHS:
+  ENV_ROOT: ${MISO_ROOT}/envs/${ENV}
+  DATA_DIR: ${PATHS.ENV_ROOT}/data
+  LOG_DIR: ${PATHS.DATA_DIR}/logs/${optimizer_mode}
+  EVAL_DIR: ${PATHS.DATA_DIR}/eval/${optimizer_mode}
+  WANDB_DIR: ${PATHS.ENV_ROOT}/wandb
+
+  MODELS_CSV_PATH: ${PATHS.EVAL_DIR}/wandb_export.csv
+  PATH_TO_DATASET: ${PATHS.DATA_DIR}/dataset
+
+
+open_loop_data:
+  load_experiment: closed_loop
+  load_method: warm_start
+  load_name: ${open_loop_data.load_experiment}_${open_loop_data.load_method}
+  load_path: ${PATHS.LOG_DIR}/${open_loop_data.load_name}/
+
+
+device: cpu
+seed: 0
+
+env: &env
+  render_mode: rgb_array
+  max_episode_steps: 250
+  device: ${device}
+
+mpc_base: &mpc_base
+  noise_sigma: 1e-3
+  lambda_: 1e-4
+  horizon: 10
+  u_per_command: null
+  device: ${device}
+
+
+solvers:
+  online:
+    num_samples: 3
+
+  oracle:
+    num_samples: 50
+
+warm_start:
+  solver: ${solvers.online}
+  mpc:
+    <<: *mpc_base
+    num_samples: ${solvers.online.num_samples}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+
+oracle:
+  solver: ${solvers.oracle}
+  mpc:
+    <<: *mpc_base
+    num_samples: ${solvers.oracle.num_samples}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+
+NN:
+  solver: ${solvers.online}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  mpc:
+    <<: *mpc_base
+    num_samples: ${solvers.online.num_samples}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  run_name:
+
+NN_perturbation:
+  solver: ${solvers.online}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  mpc:
+    <<: *mpc_base
+    num_samples: ${solvers.online.num_samples}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  run_name:
+  noise_scale: 0.01
+  num_perturbations:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+
+NN_ensemble:
+  solver: ${solvers.online}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  mpc:
+    <<: *mpc_base
+    num_samples: ${solvers.online.num_samples}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  run_name:
+
+  ensemble_size:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+
+warm_start_perturbation:
+  solver: ${solvers.online}
+  mpc:
+    <<: *mpc_base
+    num_samples: ${solvers.online.num_samples}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  noise_scale: 0.01
+  num_perturbations:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32

@@ -1,0 +1,151 @@
+ENV: cartpole
+optimizer_mode: single
+
+MISO_ROOT: /home/elad/git/miso
+
+PATHS:
+  ENV_ROOT: ${MISO_ROOT}/envs/${ENV}
+  DATA_DIR: ${PATHS.ENV_ROOT}/data
+  LOG_DIR: ${PATHS.DATA_DIR}/logs/${optimizer_mode}
+  EVAL_DIR: ${PATHS.DATA_DIR}/eval/${optimizer_mode}
+  WANDB_DIR: ${PATHS.ENV_ROOT}/wandb
+
+  MODELS_CSV_PATH: ${PATHS.EVAL_DIR}/wandb_export.csv
+  PATH_TO_DATASET: ${PATHS.DATA_DIR}/dataset
+
+open_loop_data:
+  load_experiment: closed_loop
+  load_method: warm_start
+  load_name: ${open_loop_data.load_experiment}_${open_loop_data.load_method}
+  load_path: ${PATHS.LOG_DIR}/${open_loop_data.load_name}/
+
+device: cpu
+seed: 0
+n_batch: 64
+
+env: &env
+  n_substeps: 2
+  device: ${device}
+  T_env: 50
+  n_batch: ${n_batch}
+
+mpc_base: &mpc_base
+  goal_weights: [0.1, 0.01, 1.0, 0.01]
+  ctrl_weights: .0001
+  T: 10
+  u_init: null
+  prev_ctrl: null
+  eps: 1e-7
+  back_eps: 1e-7
+  max_linesearch_iter: 1
+  linesearch_decay: 0.5
+  not_improved_lim: 3
+  best_cost_eps: 1e-5
+  grad_method: 1
+  verbose: -1
+  exit_unconverged: false
+  detach_unconverged: false
+  backprop: false
+  pnqp_iter: 1
+  device: ${device}
+  n_batch: ${n_batch}
+
+solvers:
+  online:
+    lqr_iter: 2
+
+  oracle:
+    lqr_iter: 10
+    max_linesearch_iter: 3
+
+warm_start:
+  solver: ${solvers.online}
+  mpc:
+    <<: *mpc_base
+    lqr_iter: ${solvers.online.lqr_iter}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+
+oracle:
+  solver: ${solvers.oracle}
+  mpc:
+    <<: *mpc_base
+    lqr_iter: ${solvers.oracle.lqr_iter}
+    max_linesearch_iter: ${solvers.oracle.max_linesearch_iter}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+
+
+NN:
+  solver: ${solvers.online}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  mpc:
+    <<: *mpc_base
+    lqr_iter: ${solvers.online.lqr_iter}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  run_name:
+
+NN_perturbation:
+  solver: ${solvers.online}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  mpc:
+    <<: *mpc_base
+    lqr_iter: ${solvers.online.lqr_iter}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  run_name:
+  noise_scale: 0.01
+  num_perturbations:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+
+NN_ensemble:
+  solver: ${solvers.online}
+  data_dir: ${PATHS.DATA_DIR}
+  wandb_dir: ${PATHS.WANDB_DIR}
+  mpc:
+    <<: *mpc_base
+    lqr_iter: ${solvers.online.lqr_iter}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  run_name:
+
+  ensemble_size:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+
+warm_start_perturbation:
+  mpc:
+    <<: *mpc_base
+    lqr_iter: ${solvers.online.lqr_iter}
+  env:
+    <<: *env
+  device: ${device}
+  seed: ${seed}
+  solver: ${solvers.online}
+  noise_scale: 0.01
+  num_perturbations:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32

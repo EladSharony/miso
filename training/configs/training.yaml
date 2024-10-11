@@ -1,0 +1,84 @@
+MISO_ROOT: /home/elad/git/miso
+
+ENV: nuplan # nuplan, reacher, cartpole
+ENV_ROOT: ${MISO_ROOT}/envs/${ENV}
+
+num_predictions: 1
+miso_method: none # miso-pd, miso-wta, miso-mix, none
+seed: 0
+
+train: &train
+  epochs: 125
+  batch_size: 1024
+  weight_decay: 0.0001
+  lr: none
+  seed: ${seed}
+  env: ${ENV}
+  device: cuda
+
+Transformer: &Transformer
+  src_dim: null
+  src_len: null
+  out_dim: null
+  num_predictions: ${num_predictions}
+  n_layer: 4
+  n_head: 2
+  n_embd: 64
+  dropout: 0.1
+  bias: False
+  is_causal: False
+  device: cuda
+
+nuplan:
+  miso_method: ${miso_method}
+  ENV_ROOT: ${ENV_ROOT}
+
+  model:
+    <<: *Transformer
+    src_dim: 7
+    src_len: 40
+    out_dim: 2
+
+  train:
+    <<: *train
+    lr: 0.0001
+    loss_weights:
+      - 5.0 # ctrl_weight
+      - 0.005 # state_weight
+      - 0.1 # pairwise_weight
+
+reacher:
+  miso_method: ${miso_method}
+  ENV_ROOT: ${ENV_ROOT}
+
+  model:
+    <<: *Transformer
+    src_dim: 8
+    src_len: 10
+    out_dim: 2
+
+  train:
+      <<: *train
+      lr: 0.001
+      loss_weights:
+      - 100 # ctrl_weight
+      - 0.0 # state_weight
+      - 0.1 # pairwise_weight
+
+cartpole:
+  miso_method: ${miso_method}
+  ENV_ROOT: ${ENV_ROOT}
+
+  model:
+    <<: *Transformer
+    src_dim: 5
+    src_len: 9
+    out_dim: 1
+
+  train:
+    <<: *train
+    lr: 0.0003
+    loss_weights:
+      - 1.0 # ctrl_weight
+      - 0.01 # state_weight
+      - 0.01 # pairwise_weight
