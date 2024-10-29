@@ -76,8 +76,6 @@ def main(env, exp, method, eval_set):
         tokens = f.readlines()
         tokens = [token.strip() for token in tokens]
 
-    tokens = tokens[:2]
-
     cfg = {'experiment': exp, 'method': method, 'log_dir': config['PATHS']['LOG_DIR']}
     cfg.update(config[method])
     cfg.update(config['open_loop_data'])
