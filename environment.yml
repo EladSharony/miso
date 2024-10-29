@@ -156,4 +156,4 @@ dependencies:
       - xyzservices==2024.9.0
       - yarl==1.14.0
       - zipp==3.20.2
-prefix: /home/elad/miniconda3/envs/miso
+      - scikit-learn==1.5.2
