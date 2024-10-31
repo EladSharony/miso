@@ -36,6 +36,8 @@ To set up the project environment, follow these steps:
 
 3. **Set Up nuPlan**
 
+   If you plan to use the **nuPlan** environment:
+
    - **Install nuPlan Dataset**
 
      Follow the [nuPlan installation guide](https://github.com/motional/nuplan-devkit/blob/master/docs/installation.md) to set up the dataset.
@@ -51,44 +53,88 @@ To set up the project environment, follow these steps:
 
 ## Usage
 
-### Data preparation
+This codebase supports all three environments discussed in the paper, cart-pole, reacher, and autonomous driving, using different optimizers: DDP, MPPI, and iLQR.
 
-1. **Closed-Loop with Warm-Start**
+### Data Preparation
 
-   Collect training data using closed-loop evaluation:
+#### 1. Collect Training Data
+We first run the warm-start heuristic and then use the problem instances to generate a dataset of (near-)optimal solutions using an oracle proxy:
 
-   ```bash
-   python eval.py --env nuplan --exp closed_loop --method warm_start --eval_set train
-   ```
 
-2. **Open-Loop with Oracle**
+- **Closed-Loop with Warm-Start**
 
-   Collect data using open-loop evaluation with oracle guidance:
+  ```bash
+  python eval.py --env [env_name] --exp closed_loop --method warm_start --eval_set train
+  ```
 
-   ```bash
-   python eval.py --env nuplan --exp open_loop --method oracle --eval_set train
-   ```
+- **Open-Loop with Oracle** 
 
-3. Generate the dataset required for training:
-   ```bash
-   python training/dataset.py --env nuplan
-   ```
+  ```bash
+  python eval.py --env [env_name] --exp open_loop --method oracle --eval_set train
+  ```
+
+  Replace `[env_name]` with `cartpole`, `reacher`, or `nuplan`.
+
+#### 2. Generate Dataset
+
+After data collection, generate the dataset required for training:
+
+```bash
+python training/dataset.py --env [env_name]
+```
+
+The files generated are:
+- **Dataset File**: `open_loop_oracle.pth`
+- **Scaler File**: `open_loop_oracle_scaler.pkl` (contains standardization statistics)
+
+These files are saved under the `data` directory of the corresponding environment, e.g., `${MISO_ROOT}/envs/[env_name]/data`.
+
 
 ### Model Training
 
 Train the MISO model with the specified parameters:
 
 ```bash
-python train.py --env nuplan --num_predictions 16 --miso_method miso-wta --seed 0
+python train.py --env [env_name] --num_predictions 16 --miso_method [miso_method] --seed 0
 ```
+
+`--miso_method` options: 
+- `miso-pd`:
+Penalize the pairwise distance between all outputs. The overall loss combines this dispersion-promoting term with the regression loss,
+$$ \mathcal{L}_{\mathrm{MISO-PD}} = \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +  \alpha_{K} \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}),$$
+$$ \mathcal{L}_{\mathrm{PD}, k} = \frac{1}{K-1} \sum_{\substack{k'=1 \\ k' \neq k}}^{K} \Vert \mathbf{\hat{x}}_{k}^{\mathrm{init}} - \mathbf{\hat{x}}_{k'}^{\mathrm{init}} \Vert, $$
+where $\alpha_{K}$ is a hyperparameter that balances the trade-off between accuracy and dispersion.
+
+- `miso-wta`:
+Select the best-predicted output at training time and only minimize the regression loss for this specific prediction,
+$$ \mathcal{L}_{\mathrm{MISO-WTA}} = \min_{k} \{\mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star})\}.$$
+
+- `miso-mix`: 
+A combination of the previous two approaches to potentially enhance performance, as it provides some measure of dispersion we can tune,
+$$ \mathcal{L}_{\mathrm{MISO-MIX}} = \min_{k} \left\{\mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +
+\alpha_{K} \Phi\left(\mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) \right) \right\}, $$ 
+here, $\Phi$ is an upper-bounded function, such as $\mathrm{min}$ or $\mathrm{tanh}$, designed to limit the contribution of the pairwise distance term.
+
+- `none`:
+A simple regression loss without. For $K>1$, the loss of each prediction is summed up.
 
 ### Model Evaluation
 
 Evaluate the trained model on the test set:
 
 ```bash
-python eval.py --env nuplan --exp closed_loop --method miso-wta --eval_set test
+python eval.py --env [env_name] --exp closed_loop --method [miso_method] --optimizer_mode [optimizer_mode] --eval_set test
 ```
+- `--optimizer_mode` options:
+  - `single`
+  - `multiple`
+- Each training session runs for **125 epochs**, consistent with the settings in the paper.
+- The model reads data from preconfigured paths specified in `training/configs/dataset.yaml`, these paths correspond to where the data is generated during the data preparation steps. **No changes are needed** unless you have customized the data directories.
+
+
+### Results and Reproducibility
+While efforts have been made to ensure reproducibility, results may slightly vary from those reported in the paper, especially in the nuPlan environment with the PDM planner.
+**Yet**, the **relative improvements** between different methods and baselines should remain consistent.
 
 
 ## Citation
