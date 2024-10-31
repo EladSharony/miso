@@ -217,7 +217,7 @@ def main(wandb_kwargs: dict = None):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Training script')
-    parser.add_argument('--env', type=str, default="", help='Environment to train')
+    parser.add_argument('--env', type=str, default="", help='Environment to train (cartpole, reacher, nuplan)')
     parser.add_argument('--num_predictions', type=int, default=16, help='Number of predictions')
     parser.add_argument('--miso_method', type=str, default='miso-wta', help='MISO method (miso-pd, miso-mix, miso-wta, none)')
     parser.add_argument('--seed', type=int, default=0, help='Seed')
