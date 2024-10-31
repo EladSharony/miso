@@ -3,7 +3,7 @@
 This repository contains the code for **[Learning Multiple Initial Solutions to Optimization Problems
 ](https://openreview.net/forum?id=wsb9GNh1Oi)** by Elad Sharony, Heng Yang, Tong Che, Marco Pavone, Shie Mannor, Peter Karkus.
 
-<p align="center">
+<p align="center" width="100%">
   <img src="miso-modules.svg" alt="MISO Modules" />
 </p>
 
