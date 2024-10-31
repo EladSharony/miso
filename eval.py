@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -128,11 +129,22 @@ def main(env, exp, method, eval_set):
                 run_eval(cfg, tokens, env, exp)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Eval script')
+    parser.add_argument('--env', type=str, default="nuplan", help='Environment to evaluate (cartpole, reacher, nuplan)')
+    parser.add_argument('--exp', type=str, default="closed_loop", help='Experiment type (open_loop or closed_loop)')
+    parser.add_argument('--method', type=str, default="warm_start", help='Method to evaluate (warm_start, warm_start_perturbation, oracle, NN, NN_ensemble, NN_perturbation)')
+    parser.add_argument('--eval_set', type=str, default="train", help='Evaluation set (train or test)')
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == '__main__':
-    env = 'nuplan'  # 'cartpole', 'reacher', 'nuplan'
-    eval_set = 'train'  # 'train', 'test'
-    exp = 'closed_loop'  # 'open_loop', 'closed_loop'
-    method = 'warm_start'  # 'warm_start', 'warm_start_perturbation', 'oracle', 'NN', 'NN_ensemble', 'NN_perturbation'
+    args = parse_args()
+    env = args.env
+    exp = args.exp
+    method = args.method
+    eval_set = args.eval_set
 
     # Modify sys.path to include the necessary directories
     base_dir = os.path.abspath(os.path.dirname(__file__))

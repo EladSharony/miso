@@ -218,11 +218,12 @@ def main(wandb_kwargs: dict = None):
 def parse_args():
     parser = argparse.ArgumentParser(description='Training script')
     parser.add_argument('--env', type=str, default="", help='Environment to train')
-    parser.add_argument('--cfg', type=str, default="", help='cfg file')
+    parser.add_argument('--num_predictions', type=int, default=16, help='Number of predictions')
+    parser.add_argument('--miso_method', type=str, default='miso-wta', help='MISO method (miso-pd, miso-mix, miso-wta, none)')
+    parser.add_argument('--seed', type=int, default=0, help='Seed')
     parser.add_argument('--auto_resume', type=int, default=1, help='Resume from last checkpoint')
     parser.add_argument('--run_id', type=str, default="", help='Run ID to resume')
     parser.add_argument('--sweep_id', type=str, default="", help='Sweep ID')
-    parser.add_argument("opts", help="Modify cfg options using the command-line", default=None, nargs=argparse.REMAINDER, )
     args = parser.parse_args()
     return args
 
@@ -230,32 +231,23 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    args.env = 'nuplan'
-
-    seed = 0
-    num_predictions = 16
-    miso_method = 'miso-wta'  # 'miso-pd', 'miso-mix', 'miso-wta', 'none'
-
-    cfg = OmegaConf.load(args.cfg) if args.cfg else OmegaConf.create()
+    cfg = OmegaConf.create()
 
     training_cfg = OmegaConf.create(OmegaConf.load("training/configs/training.yaml"))
-    if args.env:
-        training_cfg['ENV'] = args.env
-    env = training_cfg['ENV']
+    training_cfg['ENV'] = args.env
+    training_cfg['seed'] = args.seed
+    training_cfg['num_predictions'] = args.num_predictions
+    training_cfg['miso_method'] = args.miso_method
+    training_cfg = OmegaConf.to_container(training_cfg, resolve=True)[args.env]
 
-    training_cfg['seed'] = seed
-    training_cfg['num_predictions'] = num_predictions
-    training_cfg['miso_method'] = miso_method
-
-    training_cfg = OmegaConf.to_container(training_cfg, resolve=True)[env]
     dataset_cfg = OmegaConf.load("training/configs/dataset.yaml")
-    dataset_cfg = OmegaConf.to_container(dataset_cfg, resolve=True)[env]
+    dataset_cfg = OmegaConf.to_container(dataset_cfg, resolve=True)[args.env]
 
     cfg = OmegaConf.merge(training_cfg, dataset_cfg, cfg, OmegaConf.from_cli(args.opts))
     cfg = OmegaConf.to_container(cfg, resolve=True)
 
     cfg["auto_resume"] = args.auto_resume
-    wandb_kwargs = {"project": f"miso-{env}", "entity": 'crml', "dir": f"{cfg['ENV_ROOT']}", "config": cfg}
+    wandb_kwargs = {"project": f"miso-{args.env}", "entity": 'crml', "dir": f"{cfg['ENV_ROOT']}", "config": cfg}
 
     if args.run_id:
         runs = get_wandb_runs(wandb_kwargs['entity'], wandb_kwargs['project'])

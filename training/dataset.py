@@ -1,3 +1,4 @@
+import argparse
 import os
 import pickle
 
@@ -67,6 +68,13 @@ def main(env):
         print(f"Environment {env} already processed")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Dataset script')
+    parser.add_argument('--env', type=str, default="", help='Environment to train')
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == "__main__":
-    for env in ['cartpole', 'reacher', 'nuplan']:
-        main(env)
+    args = parse_args()
+    main(args.env)
