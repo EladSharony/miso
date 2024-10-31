@@ -3,9 +3,9 @@
 This repository contains the code for **[Learning Multiple Initial Solutions to Optimization Problems
 ](https://openreview.net/forum?id=wsb9GNh1Oi)** by Elad Sharony, Heng Yang, Tong Che, Marco Pavone, Shie Mannor, Peter Karkus.
 
-<div style="text-align: center;">
+<p align="center">
   <img src="miso-modules.svg" alt="MISO Modules" />
-</div>
+</p>
 
 The main idea of &nbsp;<img src="miso-soup.svg" alt="drawing" width="15"/> **MISO** is to train a single neural network to predict *multiple* initial solutions to
 an optimization problem, such that the initial solutions cover promising regions of the optimization
