@@ -102,7 +102,7 @@ python train.py --env [env_name] --num_predictions 16 --miso_method [miso_method
 - `miso-pd`:
 Penalize the pairwise distance between all outputs. The overall loss combines this dispersion-promoting term with the regression loss,
 ```math
-\mathcal{L}_{\mathrm{MISO-PD}} = \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +  \alpha_{K} \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}),$$
+\mathcal{L}_{\mathrm{MISO-PD}} = \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +  \alpha_{K} \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}),
 ```
 ```math
 \mathcal{L}_{\mathrm{PD}, k} = \frac{1}{K-1} \sum_{\substack{k'=1 \\ k' \neq k}}^{K} \Vert \mathbf{\hat{x}}_{k}^{\mathrm{init}} - \mathbf{\hat{x}}_{k'}^{\mathrm{init}} \Vert,
