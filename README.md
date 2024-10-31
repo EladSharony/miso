@@ -101,18 +101,26 @@ python train.py --env [env_name] --num_predictions 16 --miso_method [miso_method
 `--miso_method` options: 
 - `miso-pd`:
 Penalize the pairwise distance between all outputs. The overall loss combines this dispersion-promoting term with the regression loss,
-$$ \mathcal{L}_{\mathrm{MISO-PD}} = \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +  \alpha_{K} \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}),$$
-$$ \mathcal{L}_{\mathrm{PD}, k} = \frac{1}{K-1} \sum_{\substack{k'=1 \\ k' \neq k}}^{K} \Vert \mathbf{\hat{x}}_{k}^{\mathrm{init}} - \mathbf{\hat{x}}_{k'}^{\mathrm{init}} \Vert, $$
+```math
+\mathcal{L}_{\mathrm{MISO-PD}} = \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +  \alpha_{K} \frac{1}{K} \sum_{k=1}^{K} \mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}),$$
+```
+```math
+\mathcal{L}_{\mathrm{PD}, k} = \frac{1}{K-1} \sum_{\substack{k'=1 \\ k' \neq k}}^{K} \Vert \mathbf{\hat{x}}_{k}^{\mathrm{init}} - \mathbf{\hat{x}}_{k'}^{\mathrm{init}} \Vert,
+```
 where $\alpha_{K}$ is a hyperparameter that balances the trade-off between accuracy and dispersion.
 
 - `miso-wta`:
 Select the best-predicted output at training time and only minimize the regression loss for this specific prediction,
-$$ \mathcal{L}_{\mathrm{MISO-WTA}} = \min_{k} \{\mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star})\}.$$
+```math
+ \mathcal{L}_{\mathrm{MISO-WTA}} = \min_{k} \{\mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star})\}.
+```
 
 - `miso-mix`: 
 A combination of the previous two approaches to potentially enhance performance, as it provides some measure of dispersion we can tune,
-$$ \mathcal{L}_{\mathrm{MISO-MIX}} = \min_{k} \left\{\mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +
-\alpha_{K} \Phi\left(\mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) \right) \right\}, $$ 
+```math
+ \mathcal{L}_{\mathrm{MISO-MIX}} = \min_{k} \left\{\mathcal{L}_{\mathrm{reg}}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) +
+\alpha_{K} \Phi\left(\mathcal{L}_{\mathrm{PD}, k}(\mathbf{\hat{x}}_{k}^{\mathrm{init}}, \mathbf{x}^{\star}) \right) \right\}, 
+```
 here, $\Phi$ is an upper-bounded function, such as $\mathrm{min}$ or $\mathrm{tanh}$, designed to limit the contribution of the pairwise distance term.
 
 - `none`:
