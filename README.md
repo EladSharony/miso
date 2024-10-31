@@ -1,7 +1,5 @@
 # <img src="miso-soup.svg" alt="drawing" width="40"/> MISO: Learning Multiple Initial Solutions to Optimization Problems
 
----
-
 This repository contains the code for **[Learning Multiple Initial Solutions to Optimization Problems
 ](https://openreview.net/forum?id=wsb9GNh1Oi)** by Elad Sharony, Heng Yang, Tong Che, Marco Pavone, Shie Mannor, Peter Karkus.
 
@@ -50,7 +48,6 @@ To set up the project environment, follow these steps:
 
      Update `NUPLAN_ROOT` in `nuplan/config.py` to point to your nuPlan dataset root directory.
 
----
 
 ## Usage
 
@@ -93,7 +90,6 @@ Evaluate the trained model on the test set:
 python eval.py --env nuplan --exp closed_loop --method miso-wta --eval_set test
 ```
 
----
 
 ## Citation
 
