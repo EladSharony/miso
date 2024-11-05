@@ -1,7 +1,7 @@
 # <img src="miso-soup.svg" alt="drawing" width="40"/> MISO: Learning Multiple Initial Solutions to Optimization Problems
 
 This repository contains the code for **[Learning Multiple Initial Solutions to Optimization Problems
-](https://openreview.net/forum?id=wsb9GNh1Oi)** by Elad Sharony, Heng Yang, Tong Che, Marco Pavone, Shie Mannor, Peter Karkus.
+](https://arxiv.org/abs/2411.02158)** by Elad Sharony, Heng Yang, Tong Che, Marco Pavone, Shie Mannor, Peter Karkus.
 
 <p align="center" width="100%">
   <img src="miso-modules.svg" alt="MISO Modules" />
@@ -150,5 +150,10 @@ While efforts have been made to ensure reproducibility, results may slightly var
 If you find this project useful in your research, please cite:
 
 ```bibtex
-TODO
+@article{sharony2024learningmultipleinitialsolutions,
+      title={Learning Multiple Initial Solutions to Optimization Problems}, 
+      author={Elad Sharony and Heng Yang and Tong Che and Marco Pavone and Shie Mannor and Peter Karkus},
+      journal={arXiv preprint arXiv:2411.02158}, 
+      year={2024},
+}
 ```
