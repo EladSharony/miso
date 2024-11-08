@@ -4,7 +4,7 @@ This repository contains the code for **[Learning Multiple Initial Solutions to 
 ](https://arxiv.org/abs/2411.02158)** by Elad Sharony, Heng Yang, Tong Che, Marco Pavone, Shie Mannor, Peter Karkus.
 
 <p align="center" width="100%">
-  <img src="miso-modules.svg" alt="MISO Modules" />
+  <img src="miso-modules.gif" alt="MISO Modules" />
 </p>
 
 The main idea of &nbsp;<img src="miso-soup.svg" alt="drawing" width="15"/> **MISO** is to train a single neural network to predict *multiple* initial solutions to
