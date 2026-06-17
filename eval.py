@@ -155,4 +155,4 @@ if __name__ == '__main__':
     sys.path.append(os.path.join(base_dir, 'envs'))
     sys.path.append(env_dir)
 
-    main(env, exp, method, eval_set)
+    main(env, exp, optimizer_mode, method, eval_set)

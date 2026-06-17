@@ -57,7 +57,23 @@ This codebase supports all three environments discussed in the paper, cart-pole,
 
 ### Data Preparation
 
-#### 1. Collect Training Data
+#### 1. Generate Scenario Tokens
+
+Each problem instance is identified by a *token*, listed one per line in `envs/[env_name]/data/train_tokens.txt` and `test_tokens.txt`. These files are read by both data collection and evaluation, so they must be created first.
+
+- **`cartpole` / `reacher`**: tokens are integer indices, where each integer seeds a unique problem instance. Create disjoint train/test splits, e.g. for `cartpole`:
+
+  ```bash
+  mkdir -p envs/cartpole/data
+  seq 0 9999      > envs/cartpole/data/train_tokens.txt
+  seq 10000 10999 > envs/cartpole/data/test_tokens.txt
+  ```
+
+  The train split should contain at least `num_tokens` entries (see `training/configs/dataset.yaml`: `10_000` for `cartpole`, `2_000` for `reacher`).
+
+- **`nuplan`**: tokens are nuPlan scenario tokens drawn from the dataset via the scenario filter (see `envs/nuplan/config.yaml`), not arbitrary integers.
+
+#### 2. Collect Training Data
 We first run the warm-start heuristic and then use the problem instances to generate a dataset of (near-)optimal solutions using an oracle proxy:
 
 
@@ -75,7 +91,7 @@ We first run the warm-start heuristic and then use the problem instances to gene
 
   Replace `[env_name]` with `cartpole`, `reacher`, or `nuplan`.
 
-#### 2. Generate Dataset
+#### 3. Generate Dataset
 
 After data collection, generate the dataset required for training:
 
