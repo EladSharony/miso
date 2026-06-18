@@ -101,8 +101,8 @@ def main(env, exp, optimizer_mode, method, eval_set):
             for num_perturbations in pbar_nn_perturb:
                 cfg['num_perturbations'] = num_perturbations
                 cfg['run_name'] = config[method]['run_name']
-                run_config = runs_df[runs_df['name'] == cfg['run_name']]['config'].values[0]
-                cfg['model_type'] = run_config['model_type']
+                run_config = runs_df['config'][runs_df['name'].index(cfg['run_name'])]
+                cfg['model_type'] = run_config.get('model_type', 'TransformerModel')
                 cfg['model'] = run_config['model']
                 run_eval(cfg, tokens, env, exp)
 
@@ -112,8 +112,8 @@ def main(env, exp, optimizer_mode, method, eval_set):
         with tqdm(ensemble_size_list, desc="NN Ensemble", position=1, leave=False) as pbar_ensemble:
             for ensemble_size in pbar_ensemble:
                 cfg['run_name'] = config[method]['run_name'][:ensemble_size]
-                run_config = runs_df[runs_df['name'] == cfg['run_name'][0]]['config'].values[0]
-                cfg['model_type'] = run_config['model_type']
+                run_config = runs_df['config'][runs_df['name'].index(cfg['run_name'][0])]
+                cfg['model_type'] = run_config.get('model_type', 'TransformerModel')
                 cfg['model'] = run_config['model']
                 run_eval(cfg, tokens, env, exp)
 
@@ -123,8 +123,8 @@ def main(env, exp, optimizer_mode, method, eval_set):
         with tqdm(run_names, desc="Runs", position=1, leave=False) as pbar_runs:
             for run_name in pbar_runs:
                 cfg['run_name'] = run_name
-                run_config = runs_df[runs_df['name'] == cfg['run_name']]['config'].values[0]
-                cfg['model_type'] = run_config['model_type']
+                run_config = runs_df['config'][runs_df['name'].index(cfg['run_name'])]
+                cfg['model_type'] = run_config.get('model_type', 'TransformerModel')
                 cfg['model'] = run_config['model']
                 run_eval(cfg, tokens, env, exp)
 
