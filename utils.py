@@ -13,6 +13,17 @@ dataset_config = OmegaConf.load(os.path.join(os.path.dirname(__file__), 'trainin
 OmegaConf.resolve(dataset_config)
 
 
+def resolve_device(device: str = None) -> torch.device:
+    """Resolve the compute device: explicit override, else CUDA > MPS > CPU."""
+    if device:
+        return torch.device(device)
+    if torch.cuda.is_available():
+        return torch.device('cuda')
+    if getattr(torch.backends, 'mps', None) is not None and torch.backends.mps.is_available():
+        return torch.device('mps')
+    return torch.device('cpu')
+
+
 class InitPredictor:
     def __init__(self, metadata):
         self.model, self.scaler = self.load_model_and_scaler(metadata)

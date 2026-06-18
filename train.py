@@ -10,7 +10,7 @@ from torch.utils.data import random_split, TensorDataset, DataLoader
 
 from tqdm import tqdm
 import wandb
-from utils import get_wandb_runs
+from utils import get_wandb_runs, resolve_device
 
 from training.model import TransformerModel, TransformerConfig
 from training.loss import Loss
@@ -42,19 +42,21 @@ def prepare_dataloaders(dataset: TensorDataset, cfg: dict):
 
 
 def load_trainer_objs(cfg: dict):
-    data = torch.load(f"{cfg['data_path']}/{cfg['file_name']}.pth", map_location='cuda', weights_only=False)
+    device = resolve_device(cfg['train'].get('device'))
+
+    data = torch.load(f"{cfg['data_path']}/{cfg['file_name']}.pth", map_location=device, weights_only=False)
     dataset = TensorDataset(*data)
 
     scaler = pickle.load(open(f"{cfg['data_path']}/{cfg['file_name']}_scaler.pkl", "rb"))
     for key1 in scaler.keys():
         for key2 in scaler[key1]:
-            scaler[key1][key2] = scaler[key1][key2].to('cuda')
+            scaler[key1][key2] = scaler[key1][key2].to(device)
 
     model = TransformerModel(TransformerConfig(**cfg["model"]))
 
     loss_fn = Loss(ctrl_weight=cfg['train']["loss_weights"][0], state_weight=cfg['train']["loss_weights"][
         1], pairwise_weight=cfg['train']["loss_weights"][2], miso_method=cfg['miso_method'], env=cfg['train'][
-        'env'], scaler=scaler)
+        'env'], scaler=scaler, device=device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg['train']["lr"], weight_decay=cfg['train']["weight_decay"])
 
@@ -136,7 +138,7 @@ def evaluate(model, dataloader, loss_fn):
 
 class Trainer:
     def __init__(self, model: nn.Module, optimizer: torch.optim.Optimizer, loss_fn: nn.Module, train_dataloader, val_dataloader):
-        self.model = model.cuda()
+        self.model = model.to(model.device)
         self.optimizer = optimizer
         self.loss_fn = loss_fn
         self.train_dataloader = train_dataloader
@@ -196,8 +198,8 @@ class Trainer:
         print(f"Saved checkpoint to {checkpoint_path}")
 
 
-def main(wandb_kwargs: dict = None):
-    with wandb.init(mode='disabled', **wandb_kwargs):
+def main(wandb_kwargs: dict = None, wandb_mode: str = 'disabled'):
+    with wandb.init(mode=wandb_mode, **wandb_kwargs):
         cfg = dict(wandb.config)
         print(cfg)
         torch.manual_seed(cfg['train']['seed'])
@@ -217,13 +219,17 @@ def main(wandb_kwargs: dict = None):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Training script')
-    parser.add_argument('--env', type=str, default="", help='Environment to train (cartpole, reacher, nuplan)')
+    parser.add_argument('--env', type=str, default="", choices=["cartpole", "reacher", "nuplan"], help='Environment to train')
     parser.add_argument('--num_predictions', type=int, default=16, help='Number of predictions')
-    parser.add_argument('--miso_method', type=str, default='miso-wta', help='MISO method (miso-pd, miso-mix, miso-wta, none)')
+    parser.add_argument('--miso_method', type=str, default='miso-wta', choices=["miso-pd", "miso-mix", "miso-wta", "none"], help='MISO training objective')
     parser.add_argument('--seed', type=int, default=0, help='Seed')
+    parser.add_argument('--device', type=str, default=None, help='Compute device (e.g. cuda, cpu, mps). Auto-detected if omitted.')
+    parser.add_argument('--wandb_mode', type=str, default='disabled', choices=["online", "offline", "disabled"], help='Weights & Biases logging mode')
     parser.add_argument('--auto_resume', type=int, default=1, help='Resume from last checkpoint')
     parser.add_argument('--run_id', type=str, default="", help='Run ID to resume')
     parser.add_argument('--sweep_id', type=str, default="", help='Sweep ID')
+    parser.add_argument('opts', nargs=argparse.REMAINDER, default=[],
+                        help='Optional OmegaConf overrides, e.g. train.epochs=1 model.n_layer=2')
     args = parser.parse_args()
     return args
 
@@ -247,6 +253,12 @@ if __name__ == '__main__':
     cfg = OmegaConf.to_container(cfg, resolve=True)
 
     cfg["auto_resume"] = args.auto_resume
+
+    # Resolve the compute device once and write it back so model, data, and loss agree.
+    device = str(resolve_device(args.device))
+    cfg['train']['device'] = device
+    cfg['model']['device'] = device
+
     wandb_kwargs = {"project": f"miso-{args.env}", "entity": 'crml', "dir": f"{cfg['ENV_ROOT']}", "config": cfg}
 
     if args.run_id:
@@ -254,10 +266,12 @@ if __name__ == '__main__':
         run_idx = runs['id'].index(args.run_id)
         run_id = runs['id'][run_idx]
         cfg = runs["config"][run_idx]
+        cfg['train']['device'] = device
+        cfg['model']['device'] = device
         wandb_kwargs.update({"resume": "allow", "id": run_id})
 
     if args.sweep_id:
-        wandb.agent(sweep_id=args.sweep_id, function=lambda: main(wandb_kwargs=wandb_kwargs), **wandb_kwargs)
+        wandb.agent(sweep_id=args.sweep_id, function=lambda: main(wandb_kwargs=wandb_kwargs, wandb_mode=args.wandb_mode), **wandb_kwargs)
     else:
         wandb_kwargs.update({"config": cfg})
-        main(wandb_kwargs=wandb_kwargs)
+        main(wandb_kwargs=wandb_kwargs, wandb_mode=args.wandb_mode)

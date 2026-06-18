@@ -101,8 +101,8 @@ def main(env, exp, optimizer_mode, method, eval_set):
             for num_perturbations in pbar_nn_perturb:
                 cfg['num_perturbations'] = num_perturbations
                 cfg['run_name'] = config[method]['run_name']
-                run_config = runs_df[runs_df['name'] == cfg['run_name']]['config'].values[0]
-                cfg['model_type'] = run_config['model_type']
+                run_config = runs_df['config'][runs_df['name'].index(cfg['run_name'])]
+                cfg['model_type'] = run_config.get('model_type', 'TransformerModel')
                 cfg['model'] = run_config['model']
                 run_eval(cfg, tokens, env, exp)
 
@@ -112,8 +112,8 @@ def main(env, exp, optimizer_mode, method, eval_set):
         with tqdm(ensemble_size_list, desc="NN Ensemble", position=1, leave=False) as pbar_ensemble:
             for ensemble_size in pbar_ensemble:
                 cfg['run_name'] = config[method]['run_name'][:ensemble_size]
-                run_config = runs_df[runs_df['name'] == cfg['run_name'][0]]['config'].values[0]
-                cfg['model_type'] = run_config['model_type']
+                run_config = runs_df['config'][runs_df['name'].index(cfg['run_name'][0])]
+                cfg['model_type'] = run_config.get('model_type', 'TransformerModel')
                 cfg['model'] = run_config['model']
                 run_eval(cfg, tokens, env, exp)
 
@@ -123,19 +123,21 @@ def main(env, exp, optimizer_mode, method, eval_set):
         with tqdm(run_names, desc="Runs", position=1, leave=False) as pbar_runs:
             for run_name in pbar_runs:
                 cfg['run_name'] = run_name
-                run_config = runs_df[runs_df['name'] == cfg['run_name']]['config'].values[0]
-                cfg['model_type'] = run_config['model_type']
+                run_config = runs_df['config'][runs_df['name'].index(cfg['run_name'])]
+                cfg['model_type'] = run_config.get('model_type', 'TransformerModel')
                 cfg['model'] = run_config['model']
                 run_eval(cfg, tokens, env, exp)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Eval script')
-    parser.add_argument('--env', type=str, default="nuplan", help='Environment to evaluate (cartpole, reacher, nuplan)')
-    parser.add_argument('--exp', type=str, default="closed_loop", help='Experiment type (open_loop or closed_loop)')
-    parser.add_argument('--method', type=str, default="warm_start", help='Method to evaluate (warm_start, warm_start_perturbation, oracle, NN, NN_ensemble, NN_perturbation)')
-    parser.add_argument('--optimizer_mode', type=str, default="random", help='Optimizer mode (single, multiple)')
-    parser.add_argument('--eval_set', type=str, default="train", help='Evaluation set (train or test)')
+    parser.add_argument('--env', type=str, default="nuplan", choices=["cartpole", "reacher", "nuplan"], help='Environment to evaluate')
+    parser.add_argument('--exp', type=str, default="closed_loop", choices=["open_loop", "closed_loop"], help='Experiment type')
+    parser.add_argument('--method', type=str, default="warm_start",
+                        choices=["warm_start", "warm_start_perturbation", "oracle", "NN", "NN_ensemble", "NN_perturbation"],
+                        help='Method to evaluate')
+    parser.add_argument('--optimizer_mode', type=str, default="single", choices=["single", "multiple"], help='Optimizer mode')
+    parser.add_argument('--eval_set', type=str, default="train", choices=["train", "test"], help='Evaluation set')
     args = parser.parse_args()
     return args
 

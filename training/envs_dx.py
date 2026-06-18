@@ -1,7 +1,10 @@
 import torch
 
 
-def get_dx(env):
+def get_dx(env, device=None):
+    if device is None:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device(device)
     if env == 'nuplan':
         from nuplan.common.actor_state.vehicle_parameters import get_pacifica_parameters
         from nuplan.common.actor_state.vehicle_parameters import VehicleParameters
@@ -99,7 +102,7 @@ def get_dx(env):
                 diff[:, 4] = self._principal_value(diff[:, 4])
                 return diff
 
-        dx = KinematicBicycleModel(vehicle, device=torch.device('cuda'))
+        dx = KinematicBicycleModel(vehicle, device=device)
 
     elif env in ['reacher', 'cartpole']:
         from omegaconf import OmegaConf

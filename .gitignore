@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Experiment tracking & checkpoints
+wandb/
+**/wandb/
+*.ckpt
+
+# Generated datasets, scalers, logs (token files are kept)
+**/data/*.pth
+**/data/*.pkl
+**/data/logs/
+**/data/eval/
+*.npz
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

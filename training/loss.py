@@ -4,13 +4,13 @@ from training.envs_dx import get_dx
 
 class Loss(torch.nn.Module):
     def __init__(self, ctrl_weight: float, state_weight: float, pairwise_weight: float,
-                 miso_method: str, env: str, scaler: dict):
+                 miso_method: str, env: str, scaler: dict, device=None):
         super(Loss, self).__init__()
         self.ctrl_weight = ctrl_weight
         self.state_weight = state_weight
         self.pairwise_weight = pairwise_weight
         self.miso_method = miso_method
-        self.dx = get_dx(env)
+        self.dx = get_dx(env, device)
         self.scaler = scaler
 
     def forward(self, _predicted_input_trajectory, input_trajectory, state_trajectory):
