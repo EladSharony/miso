@@ -131,11 +131,13 @@ def main(env, exp, optimizer_mode, method, eval_set):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Eval script')
-    parser.add_argument('--env', type=str, default="nuplan", help='Environment to evaluate (cartpole, reacher, nuplan)')
-    parser.add_argument('--exp', type=str, default="closed_loop", help='Experiment type (open_loop or closed_loop)')
-    parser.add_argument('--method', type=str, default="warm_start", help='Method to evaluate (warm_start, warm_start_perturbation, oracle, NN, NN_ensemble, NN_perturbation)')
-    parser.add_argument('--optimizer_mode', type=str, default="random", help='Optimizer mode (single, multiple)')
-    parser.add_argument('--eval_set', type=str, default="train", help='Evaluation set (train or test)')
+    parser.add_argument('--env', type=str, default="nuplan", choices=["cartpole", "reacher", "nuplan"], help='Environment to evaluate')
+    parser.add_argument('--exp', type=str, default="closed_loop", choices=["open_loop", "closed_loop"], help='Experiment type')
+    parser.add_argument('--method', type=str, default="warm_start",
+                        choices=["warm_start", "warm_start_perturbation", "oracle", "NN", "NN_ensemble", "NN_perturbation"],
+                        help='Method to evaluate')
+    parser.add_argument('--optimizer_mode', type=str, default="single", choices=["single", "multiple"], help='Optimizer mode')
+    parser.add_argument('--eval_set', type=str, default="train", choices=["train", "test"], help='Evaluation set')
     args = parser.parse_args()
     return args
 
