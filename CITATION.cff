@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use MISO in your research, please cite the paper below."
+title: "MISO: Learning Multiple Initial Solutions to Optimization Problems"
+type: software
+authors:
+  - family-names: Sharony
+    given-names: Elad
+  - family-names: Yang
+    given-names: Heng
+  - family-names: Che
+    given-names: Tong
+  - family-names: Pavone
+    given-names: Marco
+  - family-names: Mannor
+    given-names: Shie
+  - family-names: Karkus
+    given-names: Peter
+repository-code: "https://github.com/EladSharony/miso"
+url: "https://esharony.me/projects/miso/"
+license: MIT
+preferred-citation:
+  type: article
+  title: "Learning Multiple Initial Solutions to Optimization Problems"
+  authors:
+    - family-names: Sharony
+      given-names: Elad
+    - family-names: Yang
+      given-names: Heng
+    - family-names: Che
+      given-names: Tong
+    - family-names: Pavone
+      given-names: Marco
+    - family-names: Mannor
+      given-names: Shie
+    - family-names: Karkus
+      given-names: Peter
+  year: 2024
+  journal: "arXiv preprint arXiv:2411.02158"
+  url: "https://arxiv.org/abs/2411.02158"
+  notes: "Accepted to the IEEE International Conference on Robotics and Automation (ICRA), 2026."

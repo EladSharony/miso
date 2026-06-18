@@ -1,0 +1,24 @@
+# Tooling configuration for MISO.
+#
+# Intentionally minimal: the project is run via the Conda environment
+# (environment.yml), and the top-level setup.py is a path-configuration helper,
+# not a build backend. This file therefore only configures Ruff.
+#
+#   ruff format .        # format
+#   ruff check . --fix   # lint + autofix
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = [
+    "envs/nuplan/nuplan-devkit",
+    "envs/reacher/pytorch_mppi",
+    "envs/cartpole/mpc",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]  # long lines are common in this research code; formatter handles wrapping
+
+[tool.ruff.format]
+quote-style = "preserve"
